@@ -1,0 +1,28 @@
+{
+  "name": "hapi-sequelize-restify",
+  "version": "0.1.0",
+  "description": "Hapi plugin to REST API with sequelize ORM",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DharanBro/hapi-sequelize-restify.git"
+  },
+  "keywords": [
+    "hapi",
+    "rest",
+    "sequelize",
+    "orm"
+  ],
+  "author": "Giridharan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/DharanBro/hapi-sequelize-restify/issues"
+  },
+  "homepage": "https://github.com/DharanBro/hapi-sequelize-restify#readme",
+  "dependencies": {
+    "@hapi/boom": "^7.4.2"
+  }
+}
