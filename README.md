@@ -1,6 +1,9 @@
 # hapi-sequelize-restify
 Enable REST API with sequelize
 
+# Swagger Documentation 
+https://app.swaggerhub.com/apis-docs/DharanBro/hapi-sequelize_restify_swagger/0.1.0#/
+
 
 # Usage
 
