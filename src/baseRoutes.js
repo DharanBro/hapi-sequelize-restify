@@ -1,5 +1,8 @@
 const Boom = require('@hapi/boom');
-
+const auth = require('./authGenerator');
+const util = require('util');
+let sequelize;
+let authConfig;
 /**
  * Add Generic routes for all the models created with sequelize
  * 
@@ -18,8 +21,10 @@ const Boom = require('@hapi/boom');
  */
 
 
-const addBaseRoutes = (server, sequelize) => {
-    return (modelName) => {
+const addBaseRoutes = (server, options) => {
+    sequelize = options.sequelize;
+    authConfig = options.config.authentication;
+    Object.keys(sequelize.models).forEach((modelName) => {
         /**
          * @api {get} /{model} Get all the records in the model
          * @api {get} /{model}/:id Get the specific record based on unique ID (pk) 
@@ -117,7 +122,24 @@ const addBaseRoutes = (server, sequelize) => {
             method: 'POST',
             path: `/${modelName}/`,
             handler: async (request, h) => {
-                const data = Object.keys(request.payload).length > 0 ? request.payload : null;
+                let data = Object.keys(request.payload).length > 0 ? request.payload : null;
+                let { identityKey, passcodeKey, authModel } = authConfig;
+                identityKey = identityKey || "username";
+                passcodeKey = passcodeKey || "password";
+                authModel = authModel || "User";
+                if (authModel === modelName) {
+                    if (request.payload[identityKey] && request.payload[passcodeKey]) {
+                        password = request.payload[authConfig.passcodeKey];
+                        const hash = await auth.hashPassword(password);
+                        data = {
+                            ...data,
+                            [authConfig.passcodeKey]: hash
+                        };
+                    } else {
+                        return Boom.badData('expected params not found');
+                    }
+
+                }
                 if (data) {
                     try {
                         const records = await sequelize.models[modelName].create(data);
@@ -209,7 +231,7 @@ const addBaseRoutes = (server, sequelize) => {
                 }
             }
         });
-    }
+    });
 };
 
 module.exports = addBaseRoutes;

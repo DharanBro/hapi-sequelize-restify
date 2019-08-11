@@ -23,6 +23,6 @@
   },
   "homepage": "https://github.com/DharanBro/hapi-sequelize-restify#readme",
   "dependencies": {
-    "@hapi/boom": "^7.4.2"
+    "hapi-auth-jwt2": "^8.6.1"
   }
 }
