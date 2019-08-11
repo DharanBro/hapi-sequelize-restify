@@ -1,4 +1,4 @@
-# hapi-sequelize-restify
+# hapi-sequelize-restify [![CircleCI](https://circleci.com/gh/DharanBro/hapi-sequelize-restify/tree/master.svg?style=svg&circle-token=2da55add1ca756e3b4cc07d018874b0ee9ac38ee)](https://circleci.com/gh/DharanBro/hapi-sequelize-restify/tree/master)
 Enable REST API with sequelize
 
 # Swagger Documentation 
