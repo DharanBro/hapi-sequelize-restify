@@ -1,6 +1,6 @@
 const Boom = require('@hapi/boom');
 const auth = require('./authGenerator');
-const util = require('util');
+
 let sequelize;
 let authConfig;
 /**
@@ -55,39 +55,39 @@ const addBaseRoutes = (server, options) => {
                 projection = projection ? JSON.parse(projection) : null;
                 const where = request.query.where ? JSON.parse(request.query.where) : null;
 
-                const options = {};
+                const queryOptions = {};
 
                 // GET: /users/{id}
-                if (id) options.where = { id };
+                if (id) queryOptions.where = { id };
 
                 // GET: /users/?projection={"name":1, "email": 1}
                 // GET: /users/?projection={"dob":0}
                 if (projection) {
-                    options.attributes = {};
+                    queryOptions.attributes = {};
                     Object.keys(projection).forEach((field) => {
                         if (projection[field] === 1) {
-                            options.attributes.include = options.attributes.include || [];
-                            options.attributes.include.push(field);
+                            queryOptions.attributes.include = queryOptions.attributes.include || [];
+                            queryOptions.attributes.include.push(field);
                         }
                         if (projection[field] === 0) {
-                            options.attributes.exclude = options.attributes.exclude || [];
-                            options.attributes.exclude.push(field);
+                            queryOptions.attributes.exclude = queryOptions.attributes.exclude || [];
+                            queryOptions.attributes.exclude.push(field);
                         }
                     });
-                    if (!options.attributes.exclude) {
-                        options.attributes = options.attributes.include;
+                    if (!queryOptions.attributes.exclude) {
+                        queryOptions.attributes = queryOptions.attributes.include;
                     }
                 }
 
                 // GET: /users/?where={"name":"giri"}
                 if (where) {
-                    options.where = {};
+                    queryOptions.where = {};
                     Object.keys(where).forEach((field) => {
-                        options.where[field] = where[field];
+                        queryOptions.where[field] = where[field];
                     });
                 }
                 try {
-                    const records = await sequelize.models[modelName].findAll(options);
+                    const records = await sequelize.models[modelName].findAll(queryOptions);
                     return records;
                 } catch (e) {
                     return Boom.badImplementation('server error');
@@ -122,36 +122,35 @@ const addBaseRoutes = (server, options) => {
         server.route({
             method: 'POST',
             path: `/${modelName}/`,
-            handler: async (request, h) => {
+            handler: async (request) => {
                 let data = Object.keys(request.payload).length > 0 ? request.payload : null;
                 let { identityKey, passcodeKey, authModel } = authConfig;
-                identityKey = identityKey || "username";
-                passcodeKey = passcodeKey || "password";
-                authModel = authModel || "User";
+                identityKey = identityKey || 'username';
+                passcodeKey = passcodeKey || 'password';
+                authModel = authModel || 'User';
                 if (authModel === modelName) {
                     if (request.payload[identityKey] && request.payload[passcodeKey]) {
-                        password = request.payload[authConfig.passcodeKey];
+                        const password = request.payload[authConfig.passcodeKey];
                         const hash = await auth.hashPassword(password);
                         data = {
                             ...data,
-                            [authConfig.passcodeKey]: hash
+                            [authConfig.passcodeKey]: hash,
                         };
                     } else {
                         return Boom.badData('expected params not found');
                     }
-
                 }
                 if (data) {
                     try {
                         const records = await sequelize.models[modelName].create(data);
                         return records;
                     } catch (e) {
-                        Boom.badImplementation('server error');
+                        return Boom.badImplementation('server error');
                     }
                 } else {
                     return Boom.badRequest('invalid query');
                 }
-            }
+            },
         });
 
 
@@ -223,7 +222,8 @@ const addBaseRoutes = (server, options) => {
                 const id = request.params.id ? encodeURIComponent(request.params.id) : null;
                 if (id) {
                     try {
-                        const records = await sequelize.models[modelName].destroy({ where: { id } });
+                        const model = sequelize.models[modelName];
+                        const records = await model.destroy({ where: { id } });
                         return { rowsDeleted: records };
                     } catch (e) {
                         return Boom.badImplementation('server error');
@@ -231,9 +231,9 @@ const addBaseRoutes = (server, options) => {
                 } else {
                     return Boom.badRequest('params not found');
                 }
-            }
+            },
         });
     });
-}
+};
 
 module.exports = addBaseRoutes;

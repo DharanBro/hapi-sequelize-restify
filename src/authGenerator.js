@@ -1,8 +1,9 @@
 const JWT = require('jsonwebtoken');
-const env = process.env.NODE_ENV || 'development';
+
 const Boom = require('@hapi/boom');
 const crypto = require('crypto');
 const util = require('util');
+
 const randomBytes = util.promisify(crypto.randomBytes);
 const pbkdf2 = util.promisify(crypto.pbkdf2);
 let sequelize;
@@ -10,13 +11,13 @@ let authConfig;
 exports.authGenerator = async (request, options) => {
     authConfig = options.config.authentication;
     let { identityKey, passcodeKey, authModel } = authConfig;
-    identityKey = identityKey || "username";
-    passcodeKey = passcodeKey || "password";
-    authModel = authModel || "User";
+    identityKey = identityKey || 'username';
+    passcodeKey = passcodeKey || 'password';
+    authModel = authModel || 'User';
     if (request.payload && request.payload[identityKey] && request.payload[passcodeKey]) {
         sequelize = options.sequelize;
         const queryOptions = {
-            where: {}
+            where: {},
         };
         const username = request.payload[identityKey];
         const password = request.payload[passcodeKey];
@@ -28,24 +29,21 @@ exports.authGenerator = async (request, options) => {
             if (record) {
                 if (exports.verifyPassword(password, record[passcodeKey])) {
                     const jwt = JWT.sign(
-                        { id: record.id, username: record.firstName, scope: "admin" },
-                        authConfig.secret, { algorithm: 'HS256', expiresIn: "24h" }
+                        { id: record.id, username: record.firstName, scope: 'admin' },
+                        authConfig.secret, { algorithm: 'HS256', expiresIn: '24h' },
                     );
-                    return { "token": jwt, "id": record.id };
-                } else {
-                    return Boom.unauthorized('invalid password');
+                    return { token: jwt, id: record.id };
                 }
-            } else {
-                return Boom.unauthorized('invalid username');
+                return Boom.unauthorized('invalid password');
             }
+            return Boom.unauthorized('invalid username');
         } catch (e) {
-            return Boom.badImplementation('server error'+e);
+            return Boom.badImplementation(`server error${e}`);
         }
     } else {
         return Boom.badData('expected params not found');
     }
-
-}
+};
 
 // larger numbers mean better security, less
 const config = {
@@ -59,7 +57,7 @@ const config = {
     // to hash the password. tune so that hashing the password takes about a
     // second
     iterations: 872791,
-    digest: 'sha512'
+    digest: 'sha512',
 };
 
 /**
@@ -70,7 +68,7 @@ const config = {
  *
  * @param {!String} password
  */
-exports.hashPassword = async function (password) {
+exports.hashPassword = async (password) => {
     const salt = await randomBytes(config.saltBytes);
     const hash = await pbkdf2(password, salt, config.iterations, config.hashBytes, config.digest);
 
@@ -78,7 +76,7 @@ exports.hashPassword = async function (password) {
     const combined = [salt.toString('hex'), hash.toString('hex')].join('$');
 
     return combined;
-}
+};
 
 /**
  * Verify a password using Node's asynchronous pbkdf2 (key derivation) function.
@@ -91,10 +89,11 @@ exports.hashPassword = async function (password) {
  *   hashPassword.
  * @param {!function(?Error, !boolean)}
  */
-exports.verifyPassword = async function (password, combined) {
+exports.verifyPassword = async (password, combined) => {
     // extract the salt and hash from the combined buffer
     const hash = combined.split('$')[1];
     const salt = combined.split('$')[0];
-    const hashBuffer = await pbkdf2(password, salt, config.iterations, config.hashBytes, config.digest).toString('hex');
-    return hashBuffer === hash
-}
+    const { iterations, hashBytes, digest } = config;
+    const hashBuffer = await pbkdf2(password, salt, iterations, hashBytes, digest).toString('hex');
+    return hashBuffer === hash;
+};
