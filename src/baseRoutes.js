@@ -1,5 +1,8 @@
 const Boom = require('@hapi/boom');
+const auth = require('./authGenerator');
 
+let sequelize;
+let authConfig;
 /**
  * Add Generic routes for all the models created with sequelize
  *
@@ -18,8 +21,11 @@ const Boom = require('@hapi/boom');
  */
 
 
-const addBaseRoutes = (server, sequelize) => (modelName) => {
-    /**
+const addBaseRoutes = (server, options) => {
+    sequelize = options.sequelize;
+    authConfig = options.config.authentication;
+    Object.keys(sequelize.models).forEach((modelName) => {
+        /**
          * @api {get} /{model} Get all the records in the model
          * @api {get} /{model}/:id Get the specific record based on unique ID (pk)
          * @api {get} /{model}/?where={"age": 25} Get all the records satisfying the condition
@@ -40,175 +46,193 @@ const addBaseRoutes = (server, sequelize) => (modelName) => {
          *       "error": "UserNotFound"
          *     }
          */
-    server.route({
-        method: 'GET',
-        path: `/${modelName}/{id?}`,
-        handler: async (request) => {
-            const id = request.params.id ? encodeURIComponent(request.params.id) : null;
-            let { projection } = request.query;
-            projection = projection ? JSON.parse(projection) : null;
-            const where = request.query.where ? JSON.parse(request.query.where) : null;
+        server.route({
+            method: 'GET',
+            path: `/${modelName}/{id?}`,
+            handler: async (request) => {
+                const id = request.params.id ? encodeURIComponent(request.params.id) : null;
+                let { projection } = request.query;
+                projection = projection ? JSON.parse(projection) : null;
+                const where = request.query.where ? JSON.parse(request.query.where) : null;
 
-            const options = {};
+                const queryOptions = {};
 
-            // GET: /users/{id}
-            if (id) options.where = { id };
+                // GET: /users/{id}
+                if (id) queryOptions.where = { id };
 
-            // GET: /users/?projection={"name":1, "email": 1}
-            // GET: /users/?projection={"dob":0}
-            if (projection) {
-                options.attributes = {};
-                Object.keys(projection).forEach((field) => {
-                    if (projection[field] === 1) {
-                        options.attributes.include = options.attributes.include || [];
-                        options.attributes.include.push(field);
+                // GET: /users/?projection={"name":1, "email": 1}
+                // GET: /users/?projection={"dob":0}
+                if (projection) {
+                    queryOptions.attributes = {};
+                    Object.keys(projection).forEach((field) => {
+                        if (projection[field] === 1) {
+                            queryOptions.attributes.include = queryOptions.attributes.include || [];
+                            queryOptions.attributes.include.push(field);
+                        }
+                        if (projection[field] === 0) {
+                            queryOptions.attributes.exclude = queryOptions.attributes.exclude || [];
+                            queryOptions.attributes.exclude.push(field);
+                        }
+                    });
+                    if (!queryOptions.attributes.exclude) {
+                        queryOptions.attributes = queryOptions.attributes.include;
                     }
-                    if (projection[field] === 0) {
-                        options.attributes.exclude = options.attributes.exclude || [];
-                        options.attributes.exclude.push(field);
-                    }
-                });
-                if (!options.attributes.exclude) {
-                    options.attributes = options.attributes.include;
                 }
-            }
 
-            // GET: /users/?where={"name":"giri"}
-            if (where) {
-                options.where = {};
-                Object.keys(where).forEach((field) => {
-                    options.where[field] = where[field];
-                });
-            }
-            try {
-                const records = await sequelize.models[modelName].findAll(options);
-                return records;
-            } catch (e) {
-                return Boom.badImplementation('server error');
-            }
-        },
-    });
-
-
-    /*
-        * @api {POST} /{model} Will create a new record
-        * @apiRequestExample:
-        * {
-        *    "firstName":"John",
-        *    "lastName":"Doe"
-        * }
-        * @apiResponse {Object} Created record.
-        *
-        * @apiSuccessExample Success-Response:
-        *     HTTP/1.1 200 OK
-        *     {
-        *       "firstname": "John",
-        *       "lastname": "Doe"
-        *     }
-        * @apiErrorExample Error-Response:
-        *     HTTP/1.1 400 Bad Request
-        *     {
-        *       "statusCode": 400,
-        *        "error": "Bad Request",
-        *        "message": "invalid query"
-        *     }
-        */
-    server.route({
-        method: 'POST',
-        path: `/${modelName}/`,
-        handler: async (request) => {
-            const data = Object.keys(request.payload).length > 0 ? request.payload : null;
-            if (data) {
+                // GET: /users/?where={"name":"giri"}
+                if (where) {
+                    queryOptions.where = {};
+                    Object.keys(where).forEach((field) => {
+                        queryOptions.where[field] = where[field];
+                    });
+                }
                 try {
-                    const records = await sequelize.models[modelName].create(data);
+                    const records = await sequelize.models[modelName].findAll(queryOptions);
                     return records;
                 } catch (e) {
                     return Boom.badImplementation('server error');
                 }
-            } else {
-                return Boom.badRequest('invalid query');
-            }
-        },
-    });
+            },
+        });
 
 
-    /*
-        * @api {PUT} /{model}/{id} Update the record with the mentioned ID (pk)
-        * @apiRequestExample:
-        * {
-        *    "firstName":"John",
-        *    "lastName":"Doe"
-        * }
-        * @apiResponse {Object} Number of record updated.
-        *
-        * @apiSuccessExample Success-Response:
-        *     HTTP/1.1 200 OK
-        *       {
-        *           "rowsAffected": 1
-        *       }
-        * @apiErrorExample Error-Response:
-        *     HTTP/1.1 400 Bad Request
-        *     {
-        *       "statusCode": 400,
-                "error": "Bad Request",
-                "message": "invalid query"
-        *     }
-        */
-    server.route({
-        method: 'PUT',
-        path: `/${modelName}/{id?}`,
-        handler: async (request) => {
-            const data = Object.keys(request.payload).length > 0 ? request.payload : null;
-            const id = request.params.id ? encodeURIComponent(request.params.id) : null;
-            if (data && id) {
-                try {
-                    const model = sequelize.models[modelName];
-                    const records = await model.update(data, { where: { id } });
-                    return { rowsAffected: records[0] };
-                } catch (e) {
-                    return Boom.badImplementation('server error');
+        /*
+            * @api {POST} /{model} Will create a new record
+            * @apiRequestExample:
+            * {
+            *    "firstName":"John",
+            *    "lastName":"Doe"
+            * }
+            * @apiResponse {Object} Created record.
+            *
+            * @apiSuccessExample Success-Response:
+            *     HTTP/1.1 200 OK
+            *     {
+            *       "firstname": "John",
+            *       "lastname": "Doe"
+            *     }
+            * @apiErrorExample Error-Response:
+            *     HTTP/1.1 400 Bad Request
+            *     {
+            *       "statusCode": 400,
+            *        "error": "Bad Request",
+            *        "message": "invalid query"
+            *     }
+            */
+        server.route({
+            method: 'POST',
+            path: `/${modelName}/`,
+            handler: async (request) => {
+                let data = Object.keys(request.payload).length > 0 ? request.payload : null;
+                let { identityKey, passcodeKey, authModel } = authConfig;
+                identityKey = identityKey || 'username';
+                passcodeKey = passcodeKey || 'password';
+                authModel = authModel || 'User';
+                if (authModel === modelName) {
+                    if (request.payload[identityKey] && request.payload[passcodeKey]) {
+                        const password = request.payload[authConfig.passcodeKey];
+                        const hash = await auth.hashPassword(password);
+                        data = {
+                            ...data,
+                            [authConfig.passcodeKey]: hash,
+                        };
+                    } else {
+                        return Boom.badData('expected params not found');
+                    }
                 }
-            } else {
-                return Boom.badRequest('params not found');
-            }
-        },
-    });
-
-
-    /*
-        * @api {DELETE} /{model}/{id} Delete the record with the mentioned ID (pk)
-        *
-        * @apiResponse {Object} Number of records deleted.
-        *
-        * @apiSuccessExample Success-Response:
-        *     HTTP/1.1 200 OK
-        *     {
-        *       "rowsDeleted": 1
-        *      }
-        * @apiErrorExample Error-Response:
-        *     HTTP/1.1 400 Bad Request
-        *     {
-        *       "statusCode": 400,
-                "error": "Bad Request",
-                "message": "params not found"
-        *     }
-        */
-    server.route({
-        method: 'DELETE',
-        path: `/${modelName}/{id?}`,
-        handler: async (request) => {
-            const id = request.params.id ? encodeURIComponent(request.params.id) : null;
-            if (id) {
-                try {
-                    const records = await sequelize.models[modelName].destroy({ where: { id } });
-                    return { rowsDeleted: records };
-                } catch (e) {
-                    return Boom.badImplementation('server error');
+                if (data) {
+                    try {
+                        const records = await sequelize.models[modelName].create(data);
+                        return records;
+                    } catch (e) {
+                        return Boom.badImplementation('server error');
+                    }
+                } else {
+                    return Boom.badRequest('invalid query');
                 }
-            } else {
-                return Boom.badRequest('params not found');
-            }
-        },
+            },
+        });
+
+
+        /*
+            * @api {PUT} /{model}/{id} Update the record with the mentioned ID (pk)
+            * @apiRequestExample:
+            * {
+            *    "firstName":"John",
+            *    "lastName":"Doe"
+            * }
+            * @apiResponse {Object} Number of record updated.
+            *
+            * @apiSuccessExample Success-Response:
+            *     HTTP/1.1 200 OK
+            *       {
+            *           "rowsAffected": 1
+            *       }
+            * @apiErrorExample Error-Response:
+            *     HTTP/1.1 400 Bad Request
+            *     {
+            *       "statusCode": 400,
+                    "error": "Bad Request",
+                    "message": "invalid query"
+            *     }
+            */
+        server.route({
+            method: 'PUT',
+            path: `/${modelName}/{id?}`,
+            handler: async (request) => {
+                const data = Object.keys(request.payload).length > 0 ? request.payload : null;
+                const id = request.params.id ? encodeURIComponent(request.params.id) : null;
+                if (data && id) {
+                    try {
+                        const model = sequelize.models[modelName];
+                        const records = await model.update(data, { where: { id } });
+                        return { rowsAffected: records[0] };
+                    } catch (e) {
+                        return Boom.badImplementation('server error');
+                    }
+                } else {
+                    return Boom.badRequest('params not found');
+                }
+            },
+        });
+
+
+        /*
+            * @api {DELETE} /{model}/{id} Delete the record with the mentioned ID (pk)
+            *
+            * @apiResponse {Object} Number of records deleted.
+            *
+            * @apiSuccessExample Success-Response:
+            *     HTTP/1.1 200 OK
+            *     {
+            *       "rowsDeleted": 1
+            *      }
+            * @apiErrorExample Error-Response:
+            *     HTTP/1.1 400 Bad Request
+            *     {
+            *       "statusCode": 400,
+                    "error": "Bad Request",
+                    "message": "params not found"
+            *     }
+            */
+        server.route({
+            method: 'DELETE',
+            path: `/${modelName}/{id?}`,
+            handler: async (request) => {
+                const id = request.params.id ? encodeURIComponent(request.params.id) : null;
+                if (id) {
+                    try {
+                        const model = sequelize.models[modelName];
+                        const records = await model.destroy({ where: { id } });
+                        return { rowsDeleted: records };
+                    } catch (e) {
+                        return Boom.badImplementation('server error');
+                    }
+                } else {
+                    return Boom.badRequest('params not found');
+                }
+            },
+        });
     });
 };
 
