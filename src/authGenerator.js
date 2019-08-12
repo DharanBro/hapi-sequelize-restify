@@ -26,19 +26,20 @@ exports.authGenerator = async (request, options) => {
 
         try {
             const record = await sequelize.models[authModel].findOne(queryOptions);
-            if (record) {
-                if (exports.verifyPassword(password, record[passcodeKey])) {
-                    const jwt = JWT.sign(
-                        { id: record.id, username: record.firstName, scope: 'admin' },
-                        authConfig.secret, { algorithm: 'HS256', expiresIn: '24h' },
-                    );
-                    return { token: jwt, id: record.id };
-                }
+            if (!record) {
                 return Boom.unauthorized('invalid password');
             }
-            return Boom.unauthorized('invalid username');
+            if (!exports.verifyPassword(password, record[passcodeKey])) {
+                return Boom.unauthorized('invalid username');
+            }
+
+            const jwt = JWT.sign(
+                { id: record.id, username: record.firstName },
+                authConfig.secret, { algorithm: 'HS256', expiresIn: '24h' },
+            );
+            return { token: jwt, id: record.id };
         } catch (e) {
-            return Boom.badImplementation(`server error${e}`);
+            return Boom.badImplementation('server error');
         }
     } else {
         return Boom.badData('expected params not found');

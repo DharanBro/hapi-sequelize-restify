@@ -1,6 +1,6 @@
 const hapiJWT = require('hapi-auth-jwt2');
 
-const generateAuth = require('./authGenerator').authGenerator;
+const { authGenerator } = require('./authGenerator');
 
 let sequelize;
 let authConfig;
@@ -43,7 +43,7 @@ module.exports = async (server, options) => {
         config: {
             auth: false,
         },
-        handler: async (request) => generateAuth(request, options),
+        handler: async (request) => authGenerator(request, options),
     });
     if (authConfig.type === 'JWT') {
         await server.register(hapiJWT);
