@@ -29,8 +29,11 @@
     "jsonwebtoken": "^8.5.1"
   },
   "devDependencies": {
-    "eslint": "^6.1.0",
+    "@hapi/hapi": "^18.4.0",
     "eslint-config-airbnb-base": "^14.0.0",
-    "eslint-plugin-import": "^2.18.2"
+    "eslint-plugin-import": "^2.18.2",
+    "mysql2": "^1.7.0",
+    "sequelize": "^5.19.0",
+    "sequelize-cli": "^5.5.1"
   }
 }
