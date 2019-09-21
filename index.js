@@ -25,8 +25,8 @@ const register = async (server, options) => {
     addBaseRoutes(server, opts);
 
     // Handle authentication
-    if (options.config.authentication) {
-        await handleAuth(server, options);
+    if (opts.config.authentication) {
+        await handleAuth(server, opts);
     }
 };
 
