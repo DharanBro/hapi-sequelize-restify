@@ -124,10 +124,7 @@ const addBaseRoutes = (server, options) => {
             path: `/${modelName}/`,
             handler: async (request) => {
                 let data = Object.keys(request.payload).length > 0 ? request.payload : null;
-                let { identityKey, passcodeKey, authModel } = authConfig;
-                identityKey = identityKey || 'username';
-                passcodeKey = passcodeKey || 'password';
-                authModel = authModel || 'User';
+                const { identityKey, passcodeKey, authModel } = authConfig;
                 if (authModel === modelName) {
                     if (request.payload[identityKey] && request.payload[passcodeKey]) {
                         const password = request.payload[authConfig.passcodeKey];
