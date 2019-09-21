@@ -10,10 +10,7 @@ let sequelize;
 let authConfig;
 exports.authGenerator = async (request, options) => {
     authConfig = options.config.authentication;
-    let { identityKey, passcodeKey, authModel } = authConfig;
-    identityKey = identityKey || 'username';
-    passcodeKey = passcodeKey || 'password';
-    authModel = authModel || 'User';
+    const { identityKey, passcodeKey, authModel } = authConfig;
     if (request.payload && request.payload[identityKey] && request.payload[passcodeKey]) {
         sequelize = options.sequelize;
         const queryOptions = {
