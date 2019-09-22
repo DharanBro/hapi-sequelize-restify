@@ -4,7 +4,7 @@
   "description": "Hapi plugin to REST API with sequelize ORM",
   "main": "index.js",
   "scripts": {
-    "lint": "eslint ./src/*",
+    "lint": "eslint ./**/*.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -25,12 +25,17 @@
   "homepage": "https://github.com/DharanBro/hapi-sequelize-restify#readme",
   "dependencies": {
     "@hapi/boom": "^7.4.2",
+    "deepmerge": "^4.0.0",
     "hapi-auth-jwt2": "^8.6.1",
     "jsonwebtoken": "^8.5.1"
   },
   "devDependencies": {
-    "eslint": "^6.1.0",
+    "@hapi/hapi": "^18.4.0",
+    "eslint": "^6.4.0",
     "eslint-config-airbnb-base": "^14.0.0",
-    "eslint-plugin-import": "^2.18.2"
+    "eslint-plugin-import": "^2.18.2",
+    "mysql2": "^1.7.0",
+    "sequelize": "^5.19.0",
+    "sequelize-cli": "^5.5.1"
   }
 }
