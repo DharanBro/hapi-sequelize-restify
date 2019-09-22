@@ -1,6 +1,5 @@
 const Boom = require('@hapi/boom');
 const auth = require('./authGenerator');
-const { joiValidator } = require('./joiValidator');
 
 let sequelize;
 let authConfig;
@@ -47,7 +46,6 @@ const addBaseRoutes = (server, options) => {
          *       "error": "UserNotFound"
          *     }
          */
-
         server.route({
             method: 'GET',
             path: `/${modelName}/{id?}`,
@@ -121,26 +119,9 @@ const addBaseRoutes = (server, options) => {
             *        "message": "invalid query"
             *     }
             */
-
         server.route({
             method: 'POST',
             path: `/${modelName}/`,
-            options: {
-                validate: {
-                    payload: joiValidator(sequelize, modelName, 'POST'),
-                    failAction: async (request, h, err) => {
-                        if (process.env.NODE_ENV === 'production') {
-                            // In prod, log a limited error message and throw the default Bad Request error.
-                            console.error('ValidationError:', err.message);
-                            throw Boom.badRequest('Invalid request payload input');
-                        } else {
-                            // During development, log and respond with the full error.
-                            console.error(err);
-                            throw err;
-                        }
-                    },
-                },
-            },
             handler: async (request) => {
                 let data = Object.keys(request.payload).length > 0 ? request.payload : null;
                 let { identityKey, passcodeKey, authModel } = authConfig;
