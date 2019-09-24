@@ -21,13 +21,13 @@ const register = async (server, options) => {
 
     opts.config = merge(defaultConfig, opts.config);
 
-    // Add generic routes with REST standards
-    addBaseRoutes(server, opts);
-
     // Handle authentication
     if (opts.config.authentication) {
         await handleAuth(server, opts);
     }
+
+    // Add generic routes with REST standards
+    addBaseRoutes(server, opts);
 };
 
 const baseRoutes = {

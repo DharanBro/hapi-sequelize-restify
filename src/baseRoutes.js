@@ -24,6 +24,11 @@ let authConfig;
 const addBaseRoutes = (server, options) => {
     sequelize = options.sequelize;
     authConfig = options.config.authentication;
+    const {
+        identityKey,
+        passcodeKey,
+        authModel,
+    } = authConfig;
     Object.keys(sequelize.models).forEach((modelName) => {
         /**
          * @api {get} /{model} Get all the records in the model
@@ -119,12 +124,19 @@ const addBaseRoutes = (server, options) => {
             *        "message": "invalid query"
             *     }
             */
+        const routeOptions = {};
+        if (authModel === modelName) {
+            routeOptions.auth = false;
+            routeOptions.cors = {
+                origin: ['http://127.0.0.1:5501'],
+            };
+        }
         server.route({
             method: 'POST',
             path: `/${modelName}/`,
+            config: routeOptions,
             handler: async (request) => {
                 let data = Object.keys(request.payload).length > 0 ? request.payload : null;
-                const { identityKey, passcodeKey, authModel } = authConfig;
                 if (authModel === modelName) {
                     if (request.payload[identityKey] && request.payload[passcodeKey]) {
                         const password = request.payload[authConfig.passcodeKey];

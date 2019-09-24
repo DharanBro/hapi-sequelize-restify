@@ -3,7 +3,6 @@ const hapiJWT = require('hapi-auth-jwt2');
 const { authGenerator } = require('./authGenerator');
 
 let sequelize;
-let authConfig;
 // bring your own validation function
 const validate = async (decoded) => {
     const user = await sequelize.models.User.findOne({ where: { id: decoded.id } });
@@ -17,7 +16,7 @@ const validate = async (decoded) => {
 
 module.exports = async (server, options) => {
     sequelize = options.sequelize;
-    authConfig = options.config.authentication;
+    const { authentication: authConfig } = options.config;
     /*
     * @api {POST} /{authenticate} Authenticate the user and generate a token.
     *
