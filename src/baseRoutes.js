@@ -177,8 +177,21 @@ const addBaseRoutes = (server, options) => {
             method: 'PUT',
             path: `/${modelName}/{id?}`,
             handler: async (request) => {
-                const data = Object.keys(request.payload).length > 0 ? request.payload : null;
+                let data = Object.keys(request.payload).length > 0 ? request.payload : null;
                 const id = request.params.id ? encodeURIComponent(request.params.id) : null;
+                const { identityKey, passcodeKey, authModel } = authConfig;
+                if (authModel === modelName) {
+                    if (request.payload[identityKey] && request.payload[passcodeKey]) {
+                        const password = request.payload[authConfig.passcodeKey];
+                        const hash = await auth.hashPassword(password);
+                        data = {
+                            ...data,
+                            [authConfig.passcodeKey]: hash,
+                        };
+                    } else {
+                        return Boom.badData('expected params not found');
+                    }
+                }
                 if (data && id) {
                     try {
                         const model = sequelize.models[modelName];
