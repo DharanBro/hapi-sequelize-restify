@@ -34,7 +34,7 @@
     "eslint": "^6.4.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-import": "^2.18.2",
-    "mysql2": "^1.7.0",
+    "mysql2": "2.3.3",
     "sequelize": "^5.19.0",
     "sequelize-cli": "^5.5.1"
   }
