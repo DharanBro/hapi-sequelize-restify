@@ -20,7 +20,6 @@ let authConfig;
  * | DELETE | /model/{id}                                | Delete the record with the mentioned ID (pk)                                      |
  */
 
-
 const addBaseRoutes = (server, options) => {
     sequelize = options.sequelize;
     authConfig = options.config.authentication;
@@ -95,7 +94,6 @@ const addBaseRoutes = (server, options) => {
             },
         });
 
-
         /*
             * @api {POST} /{model} Will create a new record
             * @apiRequestExample:
@@ -150,7 +148,6 @@ const addBaseRoutes = (server, options) => {
             },
         });
 
-
         /*
             * @api {PUT} /{model}/{id} Update the record with the mentioned ID (pk)
             * @apiRequestExample:
@@ -192,7 +189,6 @@ const addBaseRoutes = (server, options) => {
                 }
             },
         });
-
 
         /*
             * @api {DELETE} /{model}/{id} Delete the record with the mentioned ID (pk)

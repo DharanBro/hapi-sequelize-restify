@@ -70,7 +70,6 @@ exports.hashPassword = async (password) => {
     const salt = await randomBytes(config.saltBytes);
     const hash = await pbkdf2(password, salt, config.iterations, config.hashBytes, config.digest);
 
-
     const combined = [salt.toString('hex'), hash.toString('hex')].join('$');
 
     return combined;
