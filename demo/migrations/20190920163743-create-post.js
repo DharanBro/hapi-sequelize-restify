@@ -4,21 +4,21 @@ module.exports = {
             allowNull: false,
             autoIncrement: true,
             primaryKey: true,
-            type: Sequelize.INTEGER,
+            type: Sequelize.DataTypes.INTEGER,
         },
         title: {
-            type: Sequelize.STRING,
+            type: Sequelize.DataTypes.STRING,
         },
         message: {
-            type: Sequelize.STRING,
+            type: Sequelize.DataTypes.STRING,
         },
         createdAt: {
             allowNull: false,
-            type: Sequelize.DATE,
+            type: Sequelize.DataTypes.DATE,
         },
         updatedAt: {
             allowNull: false,
-            type: Sequelize.DATE,
+            type: Sequelize.DataTypes.DATE,
         },
     }),
     down: (queryInterface/* , Sequelize */) => queryInterface.dropTable('Posts'),

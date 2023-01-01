@@ -1,9 +1,7 @@
-const fs = require('fs');
-const path = require('path');
 const Sequelize = require('sequelize');
+const { applyExtraSetup } = require('./extraSetup');
 /* eslint import/no-extraneous-dependencies: ["error", {"peerDependencies": true}] */
 
-const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
 const config = require('../config/config.json')[env];
 
@@ -16,19 +14,15 @@ if (config.use_env_variable) {
     sequelize = new Sequelize(config.database, config.username, config.password, config);
 }
 
-fs.readdirSync(__dirname)
-    .filter((file) => (file.indexOf('.') !== 0)
-        && (file !== basename) && (file.slice(-3) === '.js'))
-    .forEach((file) => {
-        const model = sequelize.import(path.join(__dirname, file));
-        db[model.name] = model;
-    });
+// eslint-disable-next-line global-require
+const modelDefiners = [require('./models/user'), require('./models/post')];
 
-Object.keys(db).forEach((modelName) => {
-    if (db[modelName].associate) {
-        db[modelName].associate(db);
-    }
+// We define all models according to their files.
+modelDefiners.forEach((modelDefiner) => {
+    modelDefiner(sequelize);
 });
+
+applyExtraSetup(sequelize);
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
