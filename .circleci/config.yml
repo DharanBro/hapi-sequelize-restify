@@ -2,12 +2,9 @@ version: 2
 jobs:
   build:
     docker:
-      - image: "circleci/node:9.6.1"
+      - image: "cimg/node:14.20.1"
     steps:
       - checkout
-
-      - node/install-packages:
-          pkg-manager: yarn
 
       - restore_cache:
           key: dependency-cache-{{ checksum "package.json" }}
