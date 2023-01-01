@@ -6,12 +6,19 @@ jobs:
     steps:
       - checkout
 
+      - node/install-packages:
+          pkg-manager: yarn
+
       - restore_cache:
           key: dependency-cache-{{ checksum "package.json" }}
-          
+
+      - run:
+          name: install-npm-packages in demo
+          command: cd demo && yarn install
+
       - run:
           name: install-npm-packages
-          command: npm install
+          command: yarn install
 
       - save_cache:
           key: dependency-cache-{{ checksum "package.json" }}
@@ -19,5 +26,4 @@ jobs:
             - ./node_modules
       - run:
           name: "Run Linting"
-          command: npm run lint  
-      
+          command: npm run lint
