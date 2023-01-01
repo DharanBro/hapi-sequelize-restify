@@ -1,5 +1,5 @@
 const Hapi = require('@hapi/hapi');
-const restify = require('../');
+const restify = require('..');
 /* eslint import/no-extraneous-dependencies: ["error", {"peerDependencies": true}] */
 
 const db = require('./models');
