@@ -1,6 +1,6 @@
 {
   "name": "hapi-sequelize-restify",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Hapi plugin to REST API with sequelize ORM",
   "main": "index.js",
   "scripts": {
@@ -30,12 +30,13 @@
     "jsonwebtoken": "^8.5.1"
   },
   "devDependencies": {
-    "@hapi/hapi": "^21.1.0",
     "eslint": "^6.4.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-import": "^2.18.2",
-    "mysql2": "2.3.3",
-    "sequelize": "^5.19.0",
-    "sequelize-cli": "^5.5.1"
+    "sequelize-cli": "^6.5.2"
+  },
+  "peerDependencies": {
+    "@hapi/hapi": "^21.1.0",
+    "sequelize": "^6.28.0"
   }
 }

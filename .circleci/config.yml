@@ -2,16 +2,20 @@ version: 2
 jobs:
   build:
     docker:
-      - image: "circleci/node:9.6.1"
+      - image: "cimg/node:14.20.1"
     steps:
       - checkout
 
       - restore_cache:
           key: dependency-cache-{{ checksum "package.json" }}
-          
+
+      - run:
+          name: install-npm-packages in demo
+          command: cd demo && yarn install
+
       - run:
           name: install-npm-packages
-          command: npm install
+          command: yarn install
 
       - save_cache:
           key: dependency-cache-{{ checksum "package.json" }}
@@ -19,5 +23,4 @@ jobs:
             - ./node_modules
       - run:
           name: "Run Linting"
-          command: npm run lint  
-      
+          command: npm run lint
