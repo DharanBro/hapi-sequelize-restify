@@ -5,7 +5,8 @@
   "author": "Giridharan Rengarajan",
   "license": "MIT",
   "scripts": {
-    "start": "node app.js"
+    "start": "node app.js",
+    "seed:db": "sequelize db:seed:all"
   },
   "dependencies": {
     "@hapi/hapi": "^21.1.0",
