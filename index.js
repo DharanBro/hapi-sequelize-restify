@@ -1,6 +1,7 @@
 const merge = require('deepmerge');
 const addBaseRoutes = require('./src/baseRoutes');
 const handleAuth = require('./src/authHandler');
+const { hashPassword, verifyPassword } = require('./src/authGenerator');
 
 const defaultConfig = {
     authentication: {
@@ -35,4 +36,9 @@ const baseRoutes = {
     name: 'hapi-sequelize-restify',
 };
 
+const authenticator = { hashPassword, verifyPassword };
+
 module.exports = baseRoutes;
+exports = module.exports;
+
+exports.authenticator = authenticator;
